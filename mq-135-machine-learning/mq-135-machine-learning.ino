@@ -251,7 +251,8 @@ void trainSample(){
   float ppm = gasSensor.getPPM();
   //Send to Machine Learning Model
   String output = sendToMLTrainingModel(ppm);
-
+  //Lights Blink when the sensor is on
+  sensorBusyIndicator();
   //Printing the output
   Serial.println("Status " + output);
 }
