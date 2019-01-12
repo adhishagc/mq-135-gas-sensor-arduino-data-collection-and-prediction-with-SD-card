@@ -228,9 +228,21 @@ void makePrediction(){
   float ppm = gasSensor.getPPM();
   //Send to Machine Learning Model
   String output = sendToMLModel(ppm);
-
+  //Blink Lights on the sensor
+  sensorBusyIndicator();
   //Printing the output
   Serial.println("Predicted result " + output);
+  
+}
+
+void sensorBusyIndicator(){
+  //This blinks the Sensor leds faster
+  for(int times=0;times<2;times++){
+    digitalWrite(LED_sensor_indicator,HIGH);
+    delay(90);
+    digitalWrite(LED_sensor_indicator,LOW);
+    delay(90);  
+  }
   
 }
 
