@@ -4,14 +4,16 @@
 #include <MQ135.h> //Gas Sensor Header
 
 
-int LED_sensor_indicator = A1; //Sensor indicator LED
-int LED_SD_indicator = 48; //SD Card indicator LED
-int sensor_activate_button = 44; //Push button to activate the Sensor
+int LED_sensor_indicator = 24; //Sensor indicator LED
+int LED_SD_indicator = 22; //SD Card indicator LED
+int sensor_activate_button = 23; //Push button to activate the Sensor
 int PowerPin = 13; //5V Power Pin to the Sensor BreadBoard
-int ModeInput = 7; //Initialize Pin 7 to get the Input from the Switch to decide the Mode.
+int ModeInput = 44; //Initialize Pin 7 to get the Input from the Switch to decide the Mode.
 int CS_PIN = 53; // SPI Pin on the board
 int previous_push_input = 0; //Used to get only reading from the Sensor
 File file; //For file reading purposes
+
+const long interval = 5000; // The arbitary wait milli seconds before taking the data from the sensor
 
 //Creating an instance of the Gas Sensor
 MQ135 gasSensor = MQ135(A0);
@@ -32,6 +34,9 @@ void setup()
   pinMode(sensor_activate_button,INPUT);
   analogWrite(PowerPin,255);
   digitalWrite(LED_SD_indicator,HIGH);
+  
+ // pinMode(22,OUTPUT);
+ // digitalWrite(22,HIGH);
   
   //Initialize SD Card
   initializeSD();
@@ -143,7 +148,7 @@ void readLine(){
 void loop() {
   // put your main code here, to run repeatedly:
   //int push_input = digitalRead(ModeInput);
-  //Serial.println(push_input);
+ // Serial.println(push_input);
   //float ppm = gasSensor.getPPM();
   //sensorReadBlink();
   //Serial.println(ppm*100);
@@ -152,8 +157,9 @@ void loop() {
   int mode = digitalRead(ModeInput);
   int push_input = digitalRead(sensor_activate_button);
   
-  //If mode == 0, it switches to prediction mode, otherwise training mode.
-   if(mode ==0){
+  //If mode == 1, it switches to prediction mode, otherwise training mode.
+   if(mode ==1){
+    //Serial.println("Prediction mode");
     //It is in Prediction mode
     /*
       The following series of nested if is to make sure that only once the
@@ -166,7 +172,9 @@ void loop() {
     */
     if(push_input == 1 && previous_push_input == 0){
       //Prediction takes place
-      makePrediction();
+      //Steady state Arbitrary Delay and Prediction
+      SteadyStateArbitraryDelay();
+      
       //Set the previous Push input to 1
       previous_push_input = 1;
     }
@@ -350,4 +358,20 @@ int openFile(char filename[]){
   }
 }
 
+void SteadyStateArbitraryDelay(){
+  //This function provides an arbitrary wait before collecting data from the sensor
+
+  unsigned long save_time = millis();
+  unsigned long current_time = millis();
+
+  while(current_time - save_time < interval){
+    //Keep the timer running, that is the wait is happening
+    current_time = millis();
+
+  }
+
+  // Loop is exited when the interval has reached
+  //Assuming the sensor is at a steady state predictions can happen
+  makePrediction();
+}
 
